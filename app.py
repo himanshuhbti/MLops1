@@ -1,24 +1,24 @@
-# app.py
-
+from flask import Flask, request, jsonify, render_template
 import pickle
-from flask import Flask, request, jsonify
+import numpy as np
 
 app = Flask(__name__)
 
 # Load model
-with open('model.pkl', 'rb') as f:
-    model = pickle.load(f)
+model = pickle.load(open('model.pkl', 'rb'))
 
 @app.route('/')
 def home():
-    return "ML Model is Live!"
+    return render_template('index.html')
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    data = request.get_json()
-    features = data['features']  # Expects a list of 4 numbers
-    prediction = model.predict([features])
-    return jsonify({'prediction': int(prediction[0])})
+    try:
+        features = [float(request.form[f"f{i}"]) for i in range(1, 5)]
+        pred = model.predict([features])[0]
+        return render_template('index.html', prediction=pred)
+    except Exception as e:
+        return f"Error: {e}"
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0')
+    app.run(debug=True)
